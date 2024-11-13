@@ -6,7 +6,34 @@ using System.Threading.Tasks;
 
 namespace ERPAuth.Data.Models
 {
-    internal class Article
+    public class Article
     {
+        public int Id { get; set; }
+        public string CompanyCode { get; set; } // Single source of truth for your company's codes
+        public string Name { get; set; }
+        public ArticleType Type { get; set; }
+        public decimal Price { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    }
+
+
+
+    public enum ArticleType
+    {
+        Screw,
+        Plate,
+        Instrument,
+        Rack,
+        Tray,
+        StainlessSteelCase,
+        Container,
+        Filter,
+        Label,
+        PlasticSecuritySeal,
+        Mesh,
+        InstrumentHolders,
+        SpiralDrill,
+        Template,
+        Prostheses
     }
 }
