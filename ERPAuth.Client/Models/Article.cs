@@ -14,6 +14,10 @@ namespace ERPAuth.Client.Models
         public ArticleType Type { get; set; }
         public decimal Price { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Navigation property to link Article to its Inventory entries
+        public List<Inventory> Inventories { get; set; } = new List<Inventory>();
+
     }
 
 

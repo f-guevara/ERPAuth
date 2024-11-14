@@ -32,11 +32,16 @@ namespace ERPAuth.Client.Data
             }
         }
 
-        protected override void OnModelCreating(ModelBuilder builder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(builder);
+            base.OnModelCreating(modelBuilder);
 
-            // Any custom configurations for relationships, indexes, or constraints can go here
+            // Define one-to-many relationship between Article and Inventory
+            modelBuilder.Entity<Article>()
+                .HasMany(a => a.Inventories)
+                .WithOne(i => i.Article)
+                .HasForeignKey(i => i.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -1,0 +1,103 @@
+﻿
+@page "/articles"
+@inject ArticleService ArticleService
+@using ERPAuth.Client.Models
+@using System.Collections.Generic
+@using System.Threading.Tasks
+
+<h3>Manage Articles and Inventory</h3>
+
+@if (articles == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var article in articles)
+        {
+            <li>
+                <strong>@article.CompanyCode</strong> - @article.Name - @article.Type - Price: @article.Price
+                <button @onclick="() => ShowAddInventoryForm(article.Id)">Add Inventory</button>
+                <ul>
+                    @foreach (var inventory in article.Inventories)
+                    {
+                        <li>Lot: @inventory.LotNumber, Quantity: @inventory.TotalQuantity, Expiration: @inventory.ExpirationDate</li>
+                    }
+                </ul>
+            </li>
+        }
+    </ul>
+}
+
+<button @onclick="ShowAddArticleForm">Add New Article</button>
+
+@if (showAddArticleForm)
+{
+    <EditForm Model="newArticle" OnValidSubmit="HandleAddArticle">
+        <label>Company Code: <InputText @bind-Value="newArticle.CompanyCode" /></label>
+        <label>Name: <InputText @bind-Value="newArticle.Name" /></label>
+        <label>
+            Type: <InputSelect @bind-Value="newArticle.Type">
+                @foreach (var type in Enum.GetValues<ArticleType>())
+                {
+                    <option value="@type">@type</option>
+                }
+            </InputSelect>
+        </label>
+        <label>Price: <InputNumber @bind-Value="newArticle.Price" /></label>
+        <button type="submit">Save Article</button>
+    </EditForm>
+}
+
+@if (showAddInventoryForm)
+{
+    <EditForm Model="newInventory" OnValidSubmit="HandleAddInventory">
+        <label>Lot Number: <InputText @bind-Value="newInventory.LotNumber" /></label>
+        <label>Total Quantity: <InputNumber @bind-Value="newInventory.TotalQuantity" /></label>
+        <label>Expiration Date: <InputDate @bind-Value="newInventory.ExpirationDate" /></label>
+        <button type="submit">Save Inventory</button>
+    </EditForm>
+}
+
+@code {
+    private List<Article> articles;
+    private bool showAddArticleForm;
+    private bool showAddInventoryForm;
+    private Article newArticle = new();
+    private Inventory newInventory = new();
+    private int selectedArticleId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        articles = await ArticleService.GetAllArticlesAsync();
+    }
+
+    private void ShowAddArticleForm()
+    {
+        showAddArticleForm = true;
+    }
+
+    private async Task HandleAddArticle()
+    {
+        await ArticleService.AddArticleAsync(newArticle);
+        articles = await ArticleService.GetAllArticlesAsync(); // Refresh list
+        showAddArticleForm = false;
+        newArticle = new Article(); // Reset form
+    }
+
+    private void ShowAddInventoryForm(int articleId)
+    {
+        selectedArticleId = articleId;
+        showAddInventoryForm = true;
+    }
+
+    private async Task HandleAddInventory()
+    {
+        newInventory.ArticleId = selectedArticleId; // Associate inventory with selected article
+        await ArticleService.AddInventoryEntryAsync(selectedArticleId, newInventory);
+        articles = await ArticleService.GetAllArticlesAsync(); // Refresh list
+        showAddInventoryForm = false;
+        newInventory = new Inventory(); // Reset form
+    }
+}

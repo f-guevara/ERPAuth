@@ -66,6 +66,17 @@
                 </div>
             </NotAuthorized>
         </AuthorizeView>
+        <AuthorizeView>
+            <Authorized>
+                <NavLink href="/articles" class="nav-link" Match="NavLinkMatch.All">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Articles
+                </NavLink>
+            </Authorized>
+            <NotAuthorized>
+                <!-- Optionally show a message or redirect for non-authenticated users -->
+            </NotAuthorized>
+        </AuthorizeView>
+
     </nav>
 </div>
 

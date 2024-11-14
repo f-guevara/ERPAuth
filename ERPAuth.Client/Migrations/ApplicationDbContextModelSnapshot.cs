@@ -519,7 +519,7 @@ namespace ERPAuth.Client.Migrations
             modelBuilder.Entity("ERPAuth.Client.Models.Inventory", b =>
                 {
                     b.HasOne("ERPAuth.Client.Models.Article", "Article")
-                        .WithMany()
+                        .WithMany("Inventories")
                         .HasForeignKey("ArticleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -674,6 +674,11 @@ namespace ERPAuth.Client.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ERPAuth.Client.Models.Article", b =>
+                {
+                    b.Navigation("Inventories");
                 });
 
             modelBuilder.Entity("ERPAuth.Client.Models.Invoice", b =>
