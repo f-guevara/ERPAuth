@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using ERPAuth.Data.Models;
+using ERPAuth.Client.Models;
 
 namespace ERPAuth.Client.Data
 {

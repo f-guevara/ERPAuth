@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERPAuth.Client.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241113124954_InitialCreate")]
+    [Migration("20241114060143_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -89,7 +89,7 @@ namespace ERPAuth.Client.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.Article", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.Article", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -119,7 +119,7 @@ namespace ERPAuth.Client.Migrations
                     b.ToTable("Articles");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.Customer", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.Customer", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -163,7 +163,7 @@ namespace ERPAuth.Client.Migrations
                     b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.Inventory", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.Inventory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -216,7 +216,7 @@ namespace ERPAuth.Client.Migrations
                     b.ToTable("Inventories");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.Invoice", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.Invoice", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -237,7 +237,7 @@ namespace ERPAuth.Client.Migrations
                     b.ToTable("Invoices");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.InvoiceItem", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.InvoiceItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -266,7 +266,7 @@ namespace ERPAuth.Client.Migrations
                     b.ToTable("InvoiceItems");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.Order", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -287,7 +287,7 @@ namespace ERPAuth.Client.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.OrderItem", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.OrderItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -316,7 +316,7 @@ namespace ERPAuth.Client.Migrations
                     b.ToTable("OrderItems");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.PackingList", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.PackingList", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -337,7 +337,7 @@ namespace ERPAuth.Client.Migrations
                     b.ToTable("PackingLists");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.PackingListItem", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.PackingListItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -366,7 +366,7 @@ namespace ERPAuth.Client.Migrations
                     b.ToTable("PackingListItems");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.Provider", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.Provider", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -519,15 +519,15 @@ namespace ERPAuth.Client.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.Inventory", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.Inventory", b =>
                 {
-                    b.HasOne("ERPAuth.Data.Models.Article", "Article")
+                    b.HasOne("ERPAuth.Client.Models.Article", "Article")
                         .WithMany()
                         .HasForeignKey("ArticleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ERPAuth.Data.Models.Provider", "Provider")
+                    b.HasOne("ERPAuth.Client.Models.Provider", "Provider")
                         .WithMany()
                         .HasForeignKey("ProviderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -538,9 +538,9 @@ namespace ERPAuth.Client.Migrations
                     b.Navigation("Provider");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.Invoice", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.Invoice", b =>
                 {
-                    b.HasOne("ERPAuth.Data.Models.PackingList", "PackingList")
+                    b.HasOne("ERPAuth.Client.Models.PackingList", "PackingList")
                         .WithMany()
                         .HasForeignKey("PackingListId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -549,15 +549,15 @@ namespace ERPAuth.Client.Migrations
                     b.Navigation("PackingList");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.InvoiceItem", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.InvoiceItem", b =>
                 {
-                    b.HasOne("ERPAuth.Data.Models.Invoice", "Invoice")
+                    b.HasOne("ERPAuth.Client.Models.Invoice", "Invoice")
                         .WithMany("InvoiceItems")
                         .HasForeignKey("InvoiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ERPAuth.Data.Models.PackingListItem", "PackingListItem")
+                    b.HasOne("ERPAuth.Client.Models.PackingListItem", "PackingListItem")
                         .WithMany()
                         .HasForeignKey("PackingListItemId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -568,9 +568,9 @@ namespace ERPAuth.Client.Migrations
                     b.Navigation("PackingListItem");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.Order", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.Order", b =>
                 {
-                    b.HasOne("ERPAuth.Data.Models.Customer", "Customer")
+                    b.HasOne("ERPAuth.Client.Models.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -579,15 +579,15 @@ namespace ERPAuth.Client.Migrations
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.OrderItem", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.OrderItem", b =>
                 {
-                    b.HasOne("ERPAuth.Data.Models.Article", "Article")
+                    b.HasOne("ERPAuth.Client.Models.Article", "Article")
                         .WithMany()
                         .HasForeignKey("ArticleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ERPAuth.Data.Models.Order", "Order")
+                    b.HasOne("ERPAuth.Client.Models.Order", "Order")
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -598,9 +598,9 @@ namespace ERPAuth.Client.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.PackingList", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.PackingList", b =>
                 {
-                    b.HasOne("ERPAuth.Data.Models.Order", "Order")
+                    b.HasOne("ERPAuth.Client.Models.Order", "Order")
                         .WithMany()
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -609,15 +609,15 @@ namespace ERPAuth.Client.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.PackingListItem", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.PackingListItem", b =>
                 {
-                    b.HasOne("ERPAuth.Data.Models.OrderItem", "OrderItem")
+                    b.HasOne("ERPAuth.Client.Models.OrderItem", "OrderItem")
                         .WithMany()
                         .HasForeignKey("OrderItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ERPAuth.Data.Models.PackingList", "PackingList")
+                    b.HasOne("ERPAuth.Client.Models.PackingList", "PackingList")
                         .WithMany("PackingListItems")
                         .HasForeignKey("PackingListId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -679,17 +679,17 @@ namespace ERPAuth.Client.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.Invoice", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.Invoice", b =>
                 {
                     b.Navigation("InvoiceItems");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.Order", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.Order", b =>
                 {
                     b.Navigation("OrderItems");
                 });
 
-            modelBuilder.Entity("ERPAuth.Data.Models.PackingList", b =>
+            modelBuilder.Entity("ERPAuth.Client.Models.PackingList", b =>
                 {
                     b.Navigation("PackingListItems");
                 });

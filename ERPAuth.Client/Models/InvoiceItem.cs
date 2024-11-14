@@ -1,11 +1,9 @@
-﻿using ERPAuth.Data.Models;
-using System;
-using System.Collections.Generic;
+﻿using ERPAuth.Client.Models;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ERPAuth.Data.Models
+namespace ERPAuth.Client.Models
 {
     public class InvoiceItem
     {

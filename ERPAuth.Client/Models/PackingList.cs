@@ -1,10 +1,11 @@
-﻿using System;
+﻿using ERPAuth.Client.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ERPAuth.Data.Models
+namespace ERPAuth.Client.Models
 {
     public class PackingList
     {
@@ -15,3 +16,4 @@ namespace ERPAuth.Data.Models
         public List<PackingListItem> PackingListItems { get; set; } = new List<PackingListItem>();
     }
 }
+
