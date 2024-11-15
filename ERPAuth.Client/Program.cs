@@ -37,7 +37,9 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<ArticleService>();
-builder.Services.AddScoped<InventoryService>();
+builder.Services.AddScoped<InventoryService>(); 
+builder.Services.AddScoped<ProviderService>();
+
 
 
 builder.Services.AddServerSideBlazor()

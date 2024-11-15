@@ -21,10 +21,26 @@ public class InventoryService
     }
 
     // Add a new inventory entry
-    public async Task<Inventory> AddInventoryEntryAsync(Inventory inventory)
+    public async Task AddInventoryEntryAsync(Inventory newInventory)
     {
-        _context.Inventories.Add(inventory);
-        await _context.SaveChangesAsync();
-        return inventory;
+        try
+        {
+            // Ensure DateTime fields are UTC
+            newInventory.CreatedAt = newInventory.CreatedAt.ToUniversalTime();
+            newInventory.ExpirationDate = newInventory.ExpirationDate.ToUniversalTime();
+
+            // Initialize other fields
+            newInventory.Reserved = 0;
+            newInventory.Sold = 0;
+
+            await _context.Inventories.AddAsync(newInventory);
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error in AddInventoryEntryAsync: {ex.Message}");
+            throw;
+        }
     }
+
 }

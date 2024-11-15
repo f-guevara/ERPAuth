@@ -1,49 +1,97 @@
-﻿@page "/inventories"
+﻿@page "/add-inventory"
 @inject InventoryService InventoryService
 @inject ArticleService ArticleService
+@inject ProviderService ProviderService
+
 @using ERPAuth.Client.Models
+@using System.Collections.Generic
+@using System.Threading.Tasks
 
-<h3>Manage Inventory</h3>
+<h3>Add Inventory</h3>
 
-@if (articles == null)
+<EditForm Model="newInventory" OnValidSubmit="HandleAddInventory">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <!-- Article Dropdown -->
+    <div>
+        <label for="articleId">Article</label>
+        <select id="articleId" @bind="newInventory.ArticleId" class="form-control">
+            <option value="">Select an article</option>
+            @foreach (var article in articles)
+            {
+                <option value="@article.Id">@article.Name (@article.CompanyCode)</option>
+            }
+        </select>
+    </div>
+
+    <!-- Provider Dropdown -->
+    <div>
+        <label for="providerId">Provider</label>
+        <select id="providerId" @bind="newInventory.ProviderId" class="form-control">
+            <option value="">Select a provider</option>
+            @foreach (var provider in providers)
+            {
+                <option value="@provider.Id">@provider.Name</option>
+            }
+        </select>
+    </div>
+
+    <div>
+        <label for="providerCode">Provider Code</label>
+        <InputText id="providerCode" @bind-Value="newInventory.ProviderCode" />
+    </div>
+
+    <div>
+        <label for="lotNumber">Lot Number</label>
+        <InputText id="lotNumber" @bind-Value="newInventory.LotNumber" />
+    </div>
+
+    <div>
+        <label for="totalQuantity">Total Quantity</label>
+        <InputNumber id="totalQuantity" @bind-Value="newInventory.TotalQuantity" />
+    </div>
+
+    <div>
+        <label for="location">Location</label>
+        <InputText id="location" @bind-Value="newInventory.Location" />
+    </div>
+
+    <div>
+        <label for="expirationDate">Expiration Date</label>
+        <InputDate id="expirationDate" @bind-Value="newInventory.ExpirationDate" />
+    </div>
+
+    <div>
+        <label for="cost">Cost (optional)</label>
+        <InputNumber id="cost" @bind-Value="newInventory.Cost" />
+    </div>
+
+    <button type="submit">Add Inventory</button>
+</EditForm>
+
+@if (errorMessage != null)
 {
-    <p>Loading articles...</p>
-}
-else
-{
-    <EditForm Model="newInventory" OnValidSubmit="HandleAddInventory">
-        <label>
-            Article:
-            <InputSelect @bind-Value="newInventory.ArticleId">
-                @foreach (var article in articles)
-                {
-                    <option value="@article.Id">@article.Name</option>
-                }
-            </InputSelect>
-        </label>
-
-        <label>Provider Code: <InputText @bind-Value="newInventory.ProviderCode" /></label>
-        <label>Lot Number: <InputText @bind-Value="newInventory.LotNumber" /></label>
-        <label>Total Quantity: <InputNumber @bind-Value="newInventory.TotalQuantity" /></label>
-        <label>Expiration Date: <InputDate @bind-Value="newInventory.ExpirationDate" /></label>
-
-        <button type="submit">Save Inventory</button>
-    </EditForm>
+    <p style="color: red;">Error: @errorMessage</p>
 }
 
 @code {
-    private List<Article> articles;
-    private Inventory newInventory = new();
+    private Inventory newInventory = new Inventory();
+    private List<Article> articles = new(); // List of articles
+    private List<Provider> providers = new(); // List of providers
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            // Load providers and articles
+            providers = await ProviderService.GetAllProvidersAsync();
             articles = await ArticleService.GetAllArticlesAsync();
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error loading articles: {ex.Message}");
+            errorMessage = $"Failed to load data: {ex.Message}";
         }
     }
 
@@ -53,13 +101,11 @@ else
         {
             await InventoryService.AddInventoryEntryAsync(newInventory);
             newInventory = new Inventory(); // Reset form
+            errorMessage = null; // Clear error
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error adding inventory: {ex.Message}");
+            errorMessage = $"Failed to add inventory: {ex.Message}";
         }
     }
 }
-
-
-
