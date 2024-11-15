@@ -1,0 +1,65 @@
+﻿@page "/inventories"
+@inject InventoryService InventoryService
+@inject ArticleService ArticleService
+@using ERPAuth.Client.Models
+
+<h3>Manage Inventory</h3>
+
+@if (articles == null)
+{
+    <p>Loading articles...</p>
+}
+else
+{
+    <EditForm Model="newInventory" OnValidSubmit="HandleAddInventory">
+        <label>
+            Article:
+            <InputSelect @bind-Value="newInventory.ArticleId">
+                @foreach (var article in articles)
+                {
+                    <option value="@article.Id">@article.Name</option>
+                }
+            </InputSelect>
+        </label>
+
+        <label>Provider Code: <InputText @bind-Value="newInventory.ProviderCode" /></label>
+        <label>Lot Number: <InputText @bind-Value="newInventory.LotNumber" /></label>
+        <label>Total Quantity: <InputNumber @bind-Value="newInventory.TotalQuantity" /></label>
+        <label>Expiration Date: <InputDate @bind-Value="newInventory.ExpirationDate" /></label>
+
+        <button type="submit">Save Inventory</button>
+    </EditForm>
+}
+
+@code {
+    private List<Article> articles;
+    private Inventory newInventory = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            articles = await ArticleService.GetAllArticlesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading articles: {ex.Message}");
+        }
+    }
+
+    private async Task HandleAddInventory()
+    {
+        try
+        {
+            await InventoryService.AddInventoryEntryAsync(newInventory);
+            newInventory = new Inventory(); // Reset form
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error adding inventory: {ex.Message}");
+        }
+    }
+}
+
+
+
