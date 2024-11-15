@@ -1,0 +1,91 @@
+﻿@page "/add-customer"
+@inject CustomerService CustomerService
+@using ERPAuth.Client.Models
+
+
+<h3>Add Customer</h3>
+
+<EditForm Model="newCustomer" OnValidSubmit="HandleAddCustomer">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <!-- First Name -->
+    <div>
+        <label for="firstName">First Name</label>
+        <InputText id="firstName" @bind-Value="newCustomer.FirstName" class="form-control" />
+    </div>
+
+    <!-- Last Name -->
+    <div>
+        <label for="lastName">Last Name</label>
+        <InputText id="lastName" @bind-Value="newCustomer.LastName" class="form-control" />
+    </div>
+
+    <!-- Address -->
+    <div>
+        <label for="address">Address</label>
+        <InputText id="address" @bind-Value="newCustomer.Address" class="form-control" />
+    </div>
+
+    <!-- City -->
+    <div>
+        <label for="city">City</label>
+        <InputText id="city" @bind-Value="newCustomer.City" class="form-control" />
+    </div>
+
+    <!-- Postal Code -->
+    <div>
+        <label for="postalCode">Postal Code</label>
+        <InputText id="postalCode" @bind-Value="newCustomer.PostalCode" class="form-control" />
+    </div>
+
+    <!-- Country Dropdown -->
+    <div>
+        <label for="country">Country</label>
+        <select id="country" @bind="newCustomer.Country" class="form-control">
+            <option value="">Select a country</option>
+            @foreach (var country in countries)
+            {
+                <option value="@country">@country</option>
+            }
+        </select>
+    </div>
+
+    <!-- Email -->
+    <div>
+        <label for="email">Email</label>
+        <InputText id="email" @bind-Value="newCustomer.Email" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-2">Add Customer</button>
+</EditForm>
+
+@if (errorMessage != null)
+{
+    <p style="color: red;">Error: @errorMessage</p>
+}
+
+@code {
+    private Customer newCustomer = new Customer();
+    private List<string> countries = new()
+    {
+        "United States", "Canada", "Germany", "France", "United Kingdom",
+        "India", "China", "Australia", "Japan", "Mexico", "Jordan", "Siria",
+        "Kingdom of SA", "Greece"
+    };
+    private string? errorMessage;
+
+    private async Task HandleAddCustomer()
+    {
+        try
+        {
+            await CustomerService.AddCustomerAsync(newCustomer);
+            newCustomer = new Customer(); // Reset form
+            errorMessage = null; // Clear error message
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to add customer: {ex.Message}";
+        }
+    }
+}

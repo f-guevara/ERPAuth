@@ -39,6 +39,8 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<InventoryService>(); 
 builder.Services.AddScoped<ProviderService>();
+builder.Services.AddScoped<CustomerService>();
+
 
 
 
