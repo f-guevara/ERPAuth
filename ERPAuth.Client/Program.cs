@@ -40,6 +40,8 @@ builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<InventoryService>(); 
 builder.Services.AddScoped<ProviderService>();
 builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<OrderService>();
+
 
 
 

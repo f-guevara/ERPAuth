@@ -14,7 +14,7 @@ namespace ERPAuth.Client.Models
         public Article Article { get; set; } // Navigation property
         public int ProviderId { get; set; }
         public Provider Provider { get; set; } // Navigation property
-        public string ProviderCode { get; set; } // Provider-specific code
+        public string? ProviderCode { get; set; } // Provider-specific code
         public string LotNumber { get; set; }
         public int TotalQuantity { get; set; }
         public int Reserved { get; set; }

@@ -20,6 +20,14 @@ public class InventoryService
         return await _context.Inventories.Include(i => i.Article).ToListAsync();
     }
 
+    public async Task<List<Inventory>> GetAllAvailableInventoryAsync()
+    {
+        // Fetch all inventory where available quantity is greater than zero
+        return await _context.Inventories
+            .Where(i => (i.TotalQuantity - i.Reserved - i.Sold) > 0)
+            .ToListAsync();
+    }
+
     // Add a new inventory entry
     public async Task AddInventoryEntryAsync(Inventory newInventory)
     {
@@ -42,5 +50,29 @@ public class InventoryService
             throw;
         }
     }
+
+    public IEnumerable<Inventory> GetAvailableInventoryForArticle(int articleId)
+    {
+        return _context.Inventories
+            .Where(i => i.ArticleId == articleId) // Fetch relevant inventory
+            .AsEnumerable() // Switch to client-side evaluation
+            .Where(i => i.TotalQuantity - i.Reserved - i.Sold > 0) // Perform calculation in memory
+            .Select(i => new Inventory
+            {
+                Id = i.Id,
+                ArticleId = i.ArticleId,
+                LotNumber = i.LotNumber,
+                TotalQuantity = i.TotalQuantity,
+                Reserved = i.Reserved,
+                Sold = i.Sold,
+                Location = i.Location,
+                Cost = i.Cost,
+                ExpirationDate = i.ExpirationDate,
+                CreatedAt = i.CreatedAt
+            });
+    }
+
+
+
 
 }

@@ -37,4 +37,10 @@ public class ArticleService
         }
         return inventory;
     }
+    //Get article id by CompanyCode
+    public async Task<Article?> GetArticleByCodeAsync(string companyCode)
+    {
+        return await _context.Articles.FirstOrDefaultAsync(a => a.CompanyCode == companyCode);
+    }
+
 }

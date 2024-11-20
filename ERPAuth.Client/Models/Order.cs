@@ -9,17 +9,11 @@ namespace ERPAuth.Client.Models
 {
     public class Order
     {
-        public int Id { get; set; }
-        public int CustomerId { get; set; }
+        public int Id { get; set; } // Primary key
+        public int CustomerId { get; set; } // Foreign key to Customer
         public Customer Customer { get; set; } // Navigation property
-        public DateTime OrderDate { get; set; }
-        public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-        // Computed property for total pieces
-        public int TotalPieces => OrderItems.Sum(item => item.Quantity);
-
-        public decimal TotalAmount => OrderItems.Sum(item => item.Quantity * item.Price);
-
-
+        public DateTime OrderDate { get; set; } = DateTime.UtcNow; // Default to current date
+        public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>(); // Associated items
     }
 }
 

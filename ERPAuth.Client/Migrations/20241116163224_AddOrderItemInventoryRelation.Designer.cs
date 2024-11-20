@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERPAuth.Client.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241114064157_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20241116163224_AddOrderItemInventoryRelation")]
+    partial class AddOrderItemInventoryRelation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -192,7 +192,6 @@ namespace ERPAuth.Client.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ProviderCode")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("ProviderId")
@@ -298,6 +297,16 @@ namespace ERPAuth.Client.Migrations
                     b.Property<int>("ArticleId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("CompanyCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("DeliveryDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("InventoryId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("OrderId")
                         .HasColumnType("integer");
 
@@ -310,6 +319,8 @@ namespace ERPAuth.Client.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ArticleId");
+
+                    b.HasIndex("InventoryId");
 
                     b.HasIndex("OrderId");
 
@@ -587,13 +598,20 @@ namespace ERPAuth.Client.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ERPAuth.Client.Models.Inventory", "Inventory")
+                        .WithMany()
+                        .HasForeignKey("InventoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ERPAuth.Client.Models.Order", "Order")
-                        .WithMany("OrderItems")
+                        .WithMany("Items")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Article");
+
+                    b.Navigation("Inventory");
 
                     b.Navigation("Order");
                 });
@@ -691,7 +709,7 @@ namespace ERPAuth.Client.Migrations
 
             modelBuilder.Entity("ERPAuth.Client.Models.Order", b =>
                 {
-                    b.Navigation("OrderItems");
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("ERPAuth.Client.Models.PackingList", b =>

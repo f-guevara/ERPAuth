@@ -1,0 +1,150 @@
+﻿@page "/add-order"
+@inject OrderService OrderService
+@inject CustomerService CustomerService
+@inject ArticleService ArticleService
+@using ERPAuth.Client.Models
+
+<h3>Add Order</h3>
+
+<EditForm Model="newOrder" OnValidSubmit="HandleAddOrder">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <!-- Customer Dropdown -->
+    <div>
+        <label for="customerId">Customer</label>
+        <select id="customerId" @bind="newOrder.CustomerId" class="form-control">
+            <option value="">Select a customer</option>
+            @foreach (var customer in customers)
+            {
+                <option value="@customer.Id">@customer.FirstName @customer.LastName</option>
+            }
+        </select>
+    </div>
+
+    <!-- Order Items -->
+    <h4>Order Items</h4>
+    @foreach (var item in newOrder.Items)
+    {
+        <div class="row mb-3">
+            <!-- Article Dropdown -->
+            <div class="col-md-6">
+                <select class="form-control" @onchange="(e) => OnArticleChange(item, e)">
+                    <option value="">Select an article</option>
+                    @foreach (var article in articles)
+                    {
+                        <option value="@article.CompanyCode">@article.Name (@article.CompanyCode)</option>
+                    }
+                </select>
+            </div>
+
+
+            <!-- Quantity -->
+            <div class="col-md-2">
+                <InputNumber @bind-Value="item.Quantity" class="form-control" placeholder="Quantity" />
+            </div>
+
+            <!-- Price -->
+            <div class="col-md-2">
+                <InputNumber @bind-Value="item.Price" class="form-control" placeholder="Price" />
+            </div>
+
+            <!-- Remove Item Button -->
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger" @onclick="() => RemoveOrderItem(item)">Remove</button>
+            </div>
+        </div>
+    }
+
+    <!-- Add Item Button -->
+    <button type="button" class="btn btn-primary mb-3" @onclick="AddOrderItem">Add Item</button>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-success">Save Order</button>
+</EditForm>
+
+@if (errorMessage != null)
+{
+    <p class="text-danger">Error: @errorMessage</p>
+}
+
+@code {
+    private Order newOrder = new Order(); // New order object
+    private List<Customer> customers = new(); // List of customers
+    private List<Article> articles = new(); // List of articles
+    private string? errorMessage; // Error message for display
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            customers = await CustomerService.GetAllCustomersAsync();
+            articles = await ArticleService.GetAllArticlesAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load data: {ex.Message}";
+        }
+    }
+
+    private void AddOrderItem()
+    {
+        newOrder.Items.Add(new OrderItem());
+    }
+
+    private void RemoveOrderItem(OrderItem item)
+    {
+        newOrder.Items.Remove(item);
+    }
+
+    private async Task SetArticleId(OrderItem item)
+    {
+        // Fetch the ArticleId based on the selected CompanyCode
+        var article = await ArticleService.GetArticleByCodeAsync(item.CompanyCode);
+        if (article != null)
+        {
+            item.ArticleId = article.Id; // Set the ArticleId
+        }
+    }
+
+    private async Task HandleAddOrder()
+    {
+        try
+        {
+            // Set default delivery date for each item
+            foreach (var item in newOrder.Items)
+            {
+                if (item.DeliveryDate == default)
+                {
+                    item.DeliveryDate = DateTime.UtcNow.AddDays(7);
+                }
+            }
+
+            await OrderService.AddOrderAsync(newOrder);
+            newOrder = new Order(); // Reset the form
+            errorMessage = null; // Clear error message
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to add order: {ex.Message}";
+        }
+    }
+
+
+    private async Task OnArticleChange(OrderItem item, ChangeEventArgs e)
+    {
+        // Update the CompanyCode
+        item.CompanyCode = e.Value?.ToString();
+
+        // Fetch and set the ArticleId based on the selected CompanyCode
+        if (!string.IsNullOrEmpty(item.CompanyCode))
+        {
+            var article = await ArticleService.GetArticleByCodeAsync(item.CompanyCode);
+            if (article != null)
+            {
+                item.ArticleId = article.Id;
+            }
+        }
+    }
+
+}

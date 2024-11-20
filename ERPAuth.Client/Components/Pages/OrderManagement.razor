@@ -1,0 +1,123 @@
+﻿@page "/order-management"
+@inject OrderService OrderService
+@inject InventoryService InventoryService
+@inject NavigationManager NavigationManager
+@using ERPAuth.Client.Models
+
+<h3>Order Management</h3>
+
+@if (orders == null)
+{
+    <p>Loading orders...</p>
+}
+else
+{
+<table class="table">
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in orders)
+        {
+            <tr>
+                <td>@order.Id</td>
+                <td>@order.Customer.FirstName @order.Customer.LastName</td>
+                <td>@order.OrderDate.ToShortDateString()</td>
+                <td>
+                    <button class="btn btn-primary" @onclick="() => OpenOrder(order.Id)">Edit</button>
+                    <button class="btn btn-danger" @onclick="() => ConfirmDelete(order.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (showDeleteConfirmation)
+{
+    <div class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDeleteConfirmation"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this order?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDeleteConfirmation">Cancel</button>
+                    <button class="btn btn-danger" @onclick="DeleteOrder">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p class="text-danger">Error: @errorMessage</p>
+}
+
+@code {
+    private List<Order> orders;
+    private string? errorMessage;
+    private bool showDeleteConfirmation;
+    private int orderIdToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            orders = await OrderService.GetAllOrdersAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load orders: {ex.Message}";
+        }
+    }
+
+   
+
+    private void ConfirmDelete(int orderId)
+    {
+        Console.WriteLine($"ConfirmDelete called for OrderId: {orderId}");
+        orderIdToDelete = orderId;
+        showDeleteConfirmation = true;
+        StateHasChanged(); // Ensure UI refresh
+    }
+
+    private void CloseDeleteConfirmation()
+    {
+        Console.WriteLine("CloseDeleteConfirmation called");
+        orderIdToDelete = 0;
+        showDeleteConfirmation = false;
+        StateHasChanged(); // Ensure UI refresh
+    }
+
+    private async Task DeleteOrder()
+    {
+        Console.WriteLine($"DeleteOrder called for OrderId: {orderIdToDelete}");
+        try
+        {
+            await OrderService.DeleteOrderAsync(orderIdToDelete);
+            Console.WriteLine("Order deleted successfully");
+            orders = await OrderService.GetAllOrdersAsync(); // Refresh the orders list
+            CloseDeleteConfirmation(); // Close the confirmation modal
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to delete order: {ex.Message}";
+            Console.WriteLine(errorMessage);
+        }
+    }
+    private void OpenOrder(int orderId)
+    {
+        NavigationManager.NavigateTo($"/edit-order/{orderId}");
+    }
+}

@@ -236,7 +236,7 @@ namespace ERPAuth.Client.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ArticleId = table.Column<int>(type: "integer", nullable: false),
                     ProviderId = table.Column<int>(type: "integer", nullable: false),
-                    ProviderCode = table.Column<string>(type: "text", nullable: false),
+                    ProviderCode = table.Column<string>(type: "text", nullable: true),
                     LotNumber = table.Column<string>(type: "text", nullable: false),
                     TotalQuantity = table.Column<int>(type: "integer", nullable: false),
                     Reserved = table.Column<int>(type: "integer", nullable: false),
@@ -270,9 +270,12 @@ namespace ERPAuth.Client.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     OrderId = table.Column<int>(type: "integer", nullable: false),
-                    ArticleId = table.Column<int>(type: "integer", nullable: false),
+                    CompanyCode = table.Column<string>(type: "text", nullable: false),
                     Quantity = table.Column<int>(type: "integer", nullable: false),
-                    Price = table.Column<decimal>(type: "numeric", nullable: false)
+                    Price = table.Column<decimal>(type: "numeric", nullable: false),
+                    DeliveryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ArticleId = table.Column<int>(type: "integer", nullable: false),
+                    InventoryId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {

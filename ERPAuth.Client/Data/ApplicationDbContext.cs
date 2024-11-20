@@ -42,6 +42,16 @@ namespace ERPAuth.Client.Data
                 .WithOne(i => i.Article)
                 .HasForeignKey(i => i.ArticleId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Define one-to-one relationship between OrderItem and Inventory
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.Inventory)
+                .WithMany() // Inventory can be associated with multiple order items
+                .HasForeignKey(oi => oi.InventoryId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete
         }
+
+
+
     }
 }

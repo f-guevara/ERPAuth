@@ -1,0 +1,164 @@
+﻿@page "/edit-order/{orderId:int}"
+@inject OrderService OrderService
+@inject InventoryService InventoryService
+@using ERPAuth.Client.Models
+
+<h3>Edit Order</h3>
+
+@if (order == null)
+{
+    <p>Loading order...</p>
+}
+else
+{
+    <h4>Order #@order.Id - Customer: @order.Customer.FirstName @order.Customer.LastName</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Delivery Date</th>
+                <th>Lot Number</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in order.Items)
+            {
+                <tr>
+                    <td>@item.CompanyCode</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.Price</td>
+                    <td>
+                        <InputDate @bind-Value="item.DeliveryDate" class="form-control" />
+                    </td>
+                    <td>
+                        @if (selectedItemForLot?.Id == item.Id)
+                        {
+                            <!-- Lot Assignment Modal -->
+                            <select @bind="selectedItemForLot.InventoryId" class="form-control">
+                                <option value="">Select Lot</option>
+                                @foreach (var lot in availableLots.Where(l => l.ArticleId == item.ArticleId && l.Available >= item.Quantity))
+                                {
+                                    <option value="@lot.Id">@lot.LotNumber (Qty: @lot.Available)</option>
+                                }
+                            </select>
+                            <button class="btn btn-primary" @onclick="SaveAssignedLot">Save Lot</button>
+                            <button class="btn btn-secondary" @onclick="CloseAssignLotsModal">Cancel</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-primary" @onclick="() => OpenAssignLotsModal(item)">Assign Lot</button>
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-success" @onclick="() => SaveItemChanges(item)">Save</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@code {
+    [Parameter]
+    public int orderId { get; set; }
+
+    private Order order;
+    private List<Inventory> availableLots = new();
+    private string? errorMessage;
+    private string? successMessage;
+    private OrderItem? selectedItemForLot;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load order and available lots
+            order = await OrderService.GetOrderByIdAsync(orderId);
+            availableLots = (await InventoryService.GetAllAvailableInventoryAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load data: {ex.Message}";
+        }
+    }
+
+    private async Task SaveItemChanges(OrderItem item)
+    {
+        try
+        {
+            // Ensure DeliveryDate is in UTC
+            if (item.DeliveryDate.Kind == DateTimeKind.Unspecified)
+            {
+                item.DeliveryDate = DateTime.SpecifyKind(item.DeliveryDate, DateTimeKind.Utc);
+            }
+
+            // Update the item
+            await OrderService.UpdateOrderItemAsync(item);
+
+            // Success message
+            successMessage = "Item updated successfully!";
+            await Task.Delay(3000); // Show message for 3 seconds
+            successMessage = null;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to save changes: {ex.Message}";
+        }
+    }
+
+    private void OpenAssignLotsModal(OrderItem item)
+    {
+        selectedItemForLot = item; // Set the selected item for lot assignment
+        StateHasChanged(); // Refresh the UI to display the modal
+    }
+
+    private void CloseAssignLotsModal()
+    {
+        selectedItemForLot = null; // Clear the selection
+        StateHasChanged(); // Refresh the UI to hide the modal
+    }
+
+    private async Task SaveAssignedLot()
+    {
+        if (selectedItemForLot != null)
+        {
+            try
+            {
+                // Validate selected lot
+                var selectedLot = availableLots.FirstOrDefault(l => l.Id == selectedItemForLot.InventoryId);
+                if (selectedLot == null || selectedLot.Available < selectedItemForLot.Quantity)
+                {
+                    errorMessage = "Selected lot is invalid or insufficient quantity.";
+                    return;
+                }
+
+                // Update the reserved quantity
+                selectedLot.Reserved += selectedItemForLot.Quantity;
+
+                // Save the changes to the order item
+                await SaveItemChanges(selectedItemForLot);
+                CloseAssignLotsModal();
+
+                successMessage = "Lot assigned successfully!";
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Failed to assign lot: {ex.Message}";
+            }
+        }
+    }
+}

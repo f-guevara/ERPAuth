@@ -3,6 +3,7 @@ using System;
 using ERPAuth.Client.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERPAuth.Client.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241116081025_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -317,8 +320,6 @@ namespace ERPAuth.Client.Migrations
 
                     b.HasIndex("ArticleId");
 
-                    b.HasIndex("InventoryId");
-
                     b.HasIndex("OrderId");
 
                     b.ToTable("OrderItems");
@@ -595,11 +596,6 @@ namespace ERPAuth.Client.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ERPAuth.Client.Models.Inventory", "Inventory")
-                        .WithMany()
-                        .HasForeignKey("InventoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("ERPAuth.Client.Models.Order", "Order")
                         .WithMany("Items")
                         .HasForeignKey("OrderId")
@@ -607,8 +603,6 @@ namespace ERPAuth.Client.Migrations
                         .IsRequired();
 
                     b.Navigation("Article");
-
-                    b.Navigation("Inventory");
 
                     b.Navigation("Order");
                 });

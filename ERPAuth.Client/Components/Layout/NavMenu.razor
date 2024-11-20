@@ -96,6 +96,26 @@
                 <!-- Optionally show a message or redirect for non-authenticated users -->
             </NotAuthorized>
         </AuthorizeView>
+        <AuthorizeView>
+            <Authorized>
+                <NavLink href="/add-order" class="nav-link" Match="NavLinkMatch.All">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Add Orders
+                </NavLink>
+            </Authorized>
+            <NotAuthorized>
+                <!-- Optionally show a message or redirect for non-authenticated users -->
+            </NotAuthorized>
+        </AuthorizeView>
+        <AuthorizeView>
+            <Authorized>
+                <NavLink href="/order-management" class="nav-link" Match="NavLinkMatch.All">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span>Order Management
+                </NavLink>
+            </Authorized>
+            <NotAuthorized>
+                <!-- Optionally show a message or redirect for non-authenticated users -->
+            </NotAuthorized>
+        </AuthorizeView>
 
     </nav>
 </div>
