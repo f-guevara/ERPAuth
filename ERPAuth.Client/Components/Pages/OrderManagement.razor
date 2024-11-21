@@ -2,6 +2,8 @@
 @inject OrderService OrderService
 @inject InventoryService InventoryService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
 @using ERPAuth.Client.Models
 
 <h3>Order Management</h3>
@@ -37,9 +39,7 @@ else
     </tbody>
 </table>
 
-@if (showDeleteConfirmation)
-{
-    <div class="modal">
+    <div class="modal fade @(showDeleteConfirmation ? "show d-block" : "")" id="deleteModal" tabindex="-1" aria-hidden="true" style="display: @(showDeleteConfirmation ? "block" : "none");">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -56,7 +56,8 @@ else
             </div>
         </div>
     </div>
-}
+
+
 }
 
 @if (!string.IsNullOrEmpty(errorMessage))
@@ -84,40 +85,41 @@ else
 
    
 
-    private void ConfirmDelete(int orderId)
+    private async Task ConfirmDelete(int orderId)
     {
-        Console.WriteLine($"ConfirmDelete called for OrderId: {orderId}");
         orderIdToDelete = orderId;
-        showDeleteConfirmation = true;
-        StateHasChanged(); // Ensure UI refresh
+        await ShowDeleteModal();
     }
 
-    private void CloseDeleteConfirmation()
-    {
-        Console.WriteLine("CloseDeleteConfirmation called");
-        orderIdToDelete = 0;
-        showDeleteConfirmation = false;
-        StateHasChanged(); // Ensure UI refresh
-    }
+
 
     private async Task DeleteOrder()
     {
-        Console.WriteLine($"DeleteOrder called for OrderId: {orderIdToDelete}");
         try
         {
             await OrderService.DeleteOrderAsync(orderIdToDelete);
-            Console.WriteLine("Order deleted successfully");
             orders = await OrderService.GetAllOrdersAsync(); // Refresh the orders list
-            CloseDeleteConfirmation(); // Close the confirmation modal
+            await CloseDeleteConfirmation(); // Close the modal after deletion
         }
         catch (Exception ex)
         {
             errorMessage = $"Failed to delete order: {ex.Message}";
-            Console.WriteLine(errorMessage);
         }
     }
     private void OpenOrder(int orderId)
     {
         NavigationManager.NavigateTo($"/edit-order/{orderId}");
     }
+    private async Task ShowDeleteModal()
+    {
+        showDeleteConfirmation = true;
+        await JSRuntime.InvokeVoidAsync("openModal", "deleteModal");
+    }
+
+    private async Task CloseDeleteConfirmation()
+    {
+        showDeleteConfirmation = false;
+        await JSRuntime.InvokeVoidAsync("closeModal", "deleteModal");
+    }
+
 }
