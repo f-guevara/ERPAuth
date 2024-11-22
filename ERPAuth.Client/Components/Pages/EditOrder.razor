@@ -1,6 +1,9 @@
 ﻿@page "/edit-order/{orderId:int}"
 @inject OrderService OrderService
 @inject InventoryService InventoryService
+@inject PdfService PdfService
+@inject IJSRuntime JSRuntime
+
 @using ERPAuth.Client.Models
 
 <h3>Edit Order</h3>
@@ -59,6 +62,8 @@ else
             }
         </tbody>
     </table>
+    <button @onclick="GenerateConfirmationOrderPdf">Download Invoice</button>
+
 }
 
 @if (!string.IsNullOrEmpty(successMessage))
@@ -161,4 +166,26 @@ else
             }
         }
     }
+
+    private async Task GenerateConfirmationOrderPdf()
+    {
+        try
+        {
+            var pdfService = new PdfService();
+            var pdfData = pdfService.GenerateOrderPdf(order);
+
+            var fileName = $"ConfirmationOrder_{order.Id}.pdf";
+            var contentType = "application/pdf";
+
+            await JSRuntime.InvokeVoidAsync("saveAsFile", fileName, contentType, Convert.ToBase64String(pdfData));
+
+            successMessage = "Confirmation order PDF generated successfully!";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to generate confirmation order PDF: {ex.Message}";
+        }
+    }
+
+
 }
