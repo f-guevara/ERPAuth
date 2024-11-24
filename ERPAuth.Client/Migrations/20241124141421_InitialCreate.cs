@@ -81,6 +81,7 @@ namespace ERPAuth.Client.Migrations
                     PostalCode = table.Column<string>(type: "text", nullable: false),
                     Country = table.Column<string>(type: "text", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
+                    Phone = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -215,7 +216,11 @@ namespace ERPAuth.Client.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     CustomerId = table.Column<int>(type: "integer", nullable: false),
-                    OrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    OrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ClientOrderNumber = table.Column<string>(type: "text", nullable: true),
+                    ClientOrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    OrderPlacedBy = table.Column<string>(type: "text", nullable: true),
+                    OrderMethod = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -264,44 +269,18 @@ namespace ERPAuth.Client.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OrderItems",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    OrderId = table.Column<int>(type: "integer", nullable: false),
-                    CompanyCode = table.Column<string>(type: "text", nullable: false),
-                    Quantity = table.Column<int>(type: "integer", nullable: false),
-                    Price = table.Column<decimal>(type: "numeric", nullable: false),
-                    DeliveryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ArticleId = table.Column<int>(type: "integer", nullable: false),
-                    InventoryId = table.Column<int>(type: "integer", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OrderItems", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_OrderItems_Articles_ArticleId",
-                        column: x => x.ArticleId,
-                        principalTable: "Articles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_OrderItems_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "PackingLists",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     OrderId = table.Column<int>(type: "integer", nullable: false),
-                    PackingListDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ClientOrderNumber = table.Column<string>(type: "text", nullable: false),
+                    ClientOrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    OrderPlacedBy = table.Column<string>(type: "text", nullable: false),
+                    OrderMethod = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -315,23 +294,82 @@ namespace ERPAuth.Client.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OrderItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    OrderId = table.Column<int>(type: "integer", nullable: false),
+                    CompanyCode = table.Column<string>(type: "text", nullable: false),
+                    Quantity = table.Column<int>(type: "integer", nullable: false),
+                    Price = table.Column<decimal>(type: "numeric", nullable: false),
+                    DeliveryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ArticleId = table.Column<int>(type: "integer", nullable: false),
+                    InventoryId = table.Column<int>(type: "integer", nullable: true),
+                    QuantityShipped = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Articles_ArticleId",
+                        column: x => x.ArticleId,
+                        principalTable: "Articles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Inventories_InventoryId",
+                        column: x => x.InventoryId,
+                        principalTable: "Inventories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Invoices",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    PackingListId = table.Column<int>(type: "integer", nullable: false),
-                    InvoiceDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    OrderId = table.Column<int>(type: "integer", nullable: true),
+                    PackingListId = table.Column<int>(type: "integer", nullable: true),
+                    CustomerId = table.Column<int>(type: "integer", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ClientOrderNumber = table.Column<string>(type: "text", nullable: true),
+                    ClientOrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    OrderPlacedBy = table.Column<string>(type: "text", nullable: true),
+                    OrderMethod = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Invoices", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Invoices_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Invoices_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
                         name: "FK_Invoices_PackingLists_PackingListId",
                         column: x => x.PackingListId,
                         principalTable: "PackingLists",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -342,7 +380,7 @@ namespace ERPAuth.Client.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PackingListId = table.Column<int>(type: "integer", nullable: false),
                     OrderItemId = table.Column<int>(type: "integer", nullable: false),
-                    QuantityPacked = table.Column<int>(type: "integer", nullable: false),
+                    QuantityShipped = table.Column<int>(type: "integer", nullable: false),
                     Price = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
@@ -369,8 +407,9 @@ namespace ERPAuth.Client.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     InvoiceId = table.Column<int>(type: "integer", nullable: false),
-                    PackingListItemId = table.Column<int>(type: "integer", nullable: false),
-                    QuantityInvoiced = table.Column<int>(type: "integer", nullable: false),
+                    OrderItemId = table.Column<int>(type: "integer", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    Quantity = table.Column<int>(type: "integer", nullable: false),
                     Price = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
@@ -383,11 +422,10 @@ namespace ERPAuth.Client.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_InvoiceItems_PackingListItems_PackingListItemId",
-                        column: x => x.PackingListItemId,
-                        principalTable: "PackingListItems",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_InvoiceItems_OrderItems_OrderItemId",
+                        column: x => x.OrderItemId,
+                        principalTable: "OrderItems",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -443,9 +481,19 @@ namespace ERPAuth.Client.Migrations
                 column: "InvoiceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_InvoiceItems_PackingListItemId",
+                name: "IX_InvoiceItems_OrderItemId",
                 table: "InvoiceItems",
-                column: "PackingListItemId");
+                column: "OrderItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Invoices_CustomerId",
+                table: "Invoices",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Invoices_OrderId",
+                table: "Invoices",
+                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Invoices_PackingListId",
@@ -456,6 +504,11 @@ namespace ERPAuth.Client.Migrations
                 name: "IX_OrderItems_ArticleId",
                 table: "OrderItems",
                 column: "ArticleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_InventoryId",
+                table: "OrderItems",
+                column: "InventoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItems_OrderId",
@@ -502,10 +555,10 @@ namespace ERPAuth.Client.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Inventories");
+                name: "InvoiceItems");
 
             migrationBuilder.DropTable(
-                name: "InvoiceItems");
+                name: "PackingListItems");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -514,13 +567,7 @@ namespace ERPAuth.Client.Migrations
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "Providers");
-
-            migrationBuilder.DropTable(
                 name: "Invoices");
-
-            migrationBuilder.DropTable(
-                name: "PackingListItems");
 
             migrationBuilder.DropTable(
                 name: "OrderItems");
@@ -529,10 +576,16 @@ namespace ERPAuth.Client.Migrations
                 name: "PackingLists");
 
             migrationBuilder.DropTable(
-                name: "Articles");
+                name: "Inventories");
 
             migrationBuilder.DropTable(
                 name: "Orders");
+
+            migrationBuilder.DropTable(
+                name: "Articles");
+
+            migrationBuilder.DropTable(
+                name: "Providers");
 
             migrationBuilder.DropTable(
                 name: "Customers");

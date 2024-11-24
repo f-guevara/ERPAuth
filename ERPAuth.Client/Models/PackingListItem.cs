@@ -14,7 +14,7 @@ namespace ERPAuth.Client.Models
         public PackingList PackingList { get; set; } // Navigation property
         public int OrderItemId { get; set; }
         public OrderItem OrderItem { get; set; } // Navigation property
-        public int QuantityPacked { get; set; }
+        public int QuantityShipped { get; set; }
         public decimal Price { get; set; }
     }
 }

@@ -151,6 +151,10 @@ namespace ERPAuth.Client.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("PostalCode")
                         .IsRequired()
                         .HasColumnType("text");
@@ -220,13 +224,45 @@ namespace ERPAuth.Client.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("InvoiceDate")
+                    b.Property<DateTime?>("ClientOrderDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("PackingListId")
+                    b.Property<string>("ClientOrderNumber")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OrderMethod")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OrderPlacedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("PackingListId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("OrderId");
 
                     b.HasIndex("PackingListId");
 
@@ -241,23 +277,27 @@ namespace ERPAuth.Client.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("InvoiceId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("PackingListItemId")
+                    b.Property<int?>("OrderItemId")
                         .HasColumnType("integer");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
-                    b.Property<int>("QuantityInvoiced")
+                    b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("InvoiceId");
 
-                    b.HasIndex("PackingListItemId");
+                    b.HasIndex("OrderItemId");
 
                     b.ToTable("InvoiceItems");
                 });
@@ -270,11 +310,23 @@ namespace ERPAuth.Client.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("ClientOrderDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ClientOrderNumber")
+                        .HasColumnType("text");
+
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("OrderMethod")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OrderPlacedBy")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -313,6 +365,9 @@ namespace ERPAuth.Client.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<int>("QuantityShipped")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ArticleId");
@@ -332,10 +387,28 @@ namespace ERPAuth.Client.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("ClientOrderDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ClientOrderNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("OrderId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("PackingListDate")
+                    b.Property<string>("OrderMethod")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OrderPlacedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -362,7 +435,7 @@ namespace ERPAuth.Client.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
-                    b.Property<int>("QuantityPacked")
+                    b.Property<int>("QuantityShipped")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -548,11 +621,25 @@ namespace ERPAuth.Client.Migrations
 
             modelBuilder.Entity("ERPAuth.Client.Models.Invoice", b =>
                 {
+                    b.HasOne("ERPAuth.Client.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ERPAuth.Client.Models.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("ERPAuth.Client.Models.PackingList", "PackingList")
                         .WithMany()
                         .HasForeignKey("PackingListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Order");
 
                     b.Navigation("PackingList");
                 });
@@ -560,26 +647,24 @@ namespace ERPAuth.Client.Migrations
             modelBuilder.Entity("ERPAuth.Client.Models.InvoiceItem", b =>
                 {
                     b.HasOne("ERPAuth.Client.Models.Invoice", "Invoice")
-                        .WithMany("InvoiceItems")
+                        .WithMany("Items")
                         .HasForeignKey("InvoiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ERPAuth.Client.Models.PackingListItem", "PackingListItem")
+                    b.HasOne("ERPAuth.Client.Models.OrderItem", "OrderItem")
                         .WithMany()
-                        .HasForeignKey("PackingListItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("OrderItemId");
 
                     b.Navigation("Invoice");
 
-                    b.Navigation("PackingListItem");
+                    b.Navigation("OrderItem");
                 });
 
             modelBuilder.Entity("ERPAuth.Client.Models.Order", b =>
                 {
                     b.HasOne("ERPAuth.Client.Models.Customer", "Customer")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -616,7 +701,7 @@ namespace ERPAuth.Client.Migrations
             modelBuilder.Entity("ERPAuth.Client.Models.PackingList", b =>
                 {
                     b.HasOne("ERPAuth.Client.Models.Order", "Order")
-                        .WithMany()
+                        .WithMany("PackingLists")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -633,7 +718,7 @@ namespace ERPAuth.Client.Migrations
                         .IsRequired();
 
                     b.HasOne("ERPAuth.Client.Models.PackingList", "PackingList")
-                        .WithMany("PackingListItems")
+                        .WithMany("Items")
                         .HasForeignKey("PackingListId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -699,19 +784,26 @@ namespace ERPAuth.Client.Migrations
                     b.Navigation("Inventories");
                 });
 
+            modelBuilder.Entity("ERPAuth.Client.Models.Customer", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
             modelBuilder.Entity("ERPAuth.Client.Models.Invoice", b =>
                 {
-                    b.Navigation("InvoiceItems");
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("ERPAuth.Client.Models.Order", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("PackingLists");
                 });
 
             modelBuilder.Entity("ERPAuth.Client.Models.PackingList", b =>
                 {
-                    b.Navigation("PackingListItems");
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

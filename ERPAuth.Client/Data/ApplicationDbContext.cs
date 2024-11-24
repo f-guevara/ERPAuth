@@ -27,7 +27,7 @@ namespace ERPAuth.Client.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                // You can inject Configuration here or use another method to fetch connection string
+                // Configure PostgreSQL connection string
                 optionsBuilder.UseNpgsql("Your PostgreSQL connection string here");
             }
         }
@@ -43,15 +43,60 @@ namespace ERPAuth.Client.Data
                 .HasForeignKey(i => i.ArticleId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Define one-to-many relationship between Customer and Order
+            modelBuilder.Entity<Customer>()
+                .HasMany(c => c.Orders)
+                .WithOne(o => o.Customer)
+                .HasForeignKey(o => o.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Define one-to-many relationship between Order and OrderItem
+            modelBuilder.Entity<Order>()
+                .HasMany(o => o.Items)
+                .WithOne(oi => oi.Order)
+                .HasForeignKey(oi => oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Define one-to-one relationship between OrderItem and Inventory
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.Inventory)
                 .WithMany() // Inventory can be associated with multiple order items
                 .HasForeignKey(oi => oi.InventoryId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete
+
+            // Define one-to-one relationship between Order and PackingList
+            modelBuilder.Entity<PackingList>()
+                .HasOne(pl => pl.Order)
+                .WithMany(o => o.PackingLists)
+                .HasForeignKey(pl => pl.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Define one-to-many relationship between PackingList and PackingListItem
+            modelBuilder.Entity<PackingList>()
+                .HasMany(pl => pl.Items)
+                .WithOne(pli => pli.PackingList)
+                .HasForeignKey(pli => pli.PackingListId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Define one-to-many relationship between Invoice and InvoiceItem
+            modelBuilder.Entity<Invoice>()
+                .HasMany(i => i.Items)
+                .WithOne(ii => ii.Invoice)
+                .HasForeignKey(ii => ii.InvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Define optional relationships for Invoice
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.Order)
+                .WithMany()
+                .HasForeignKey(i => i.OrderId)
+                .OnDelete(DeleteBehavior.SetNull); // Allow standalone invoices
+
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.PackingList)
+                .WithMany()
+                .HasForeignKey(i => i.PackingListId)
+                .OnDelete(DeleteBehavior.SetNull); // Allow standalone invoices
         }
-
-
-
     }
 }

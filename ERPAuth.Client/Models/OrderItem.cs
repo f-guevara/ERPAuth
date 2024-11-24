@@ -20,5 +20,9 @@ namespace ERPAuth.Client.Models
         public Article Article { get; set; } // Navigation property
         public int? InventoryId { get; set; } // Nullable, links to a specific inventory lot
         public Inventory Inventory { get; set; } // Navigation property
+
+        // Fields for packing and shipping
+        public int QuantityShipped { get; set; } = 0; // Total quantity shipped
+        public int QuantityRemaining => Quantity - QuantityShipped; // Computed field
     }
 }
