@@ -16,14 +16,15 @@ namespace ERPAuth.Client.Models
         public Provider Provider { get; set; } // Navigation property
         public string? ProviderCode { get; set; } // Provider-specific code
         public string LotNumber { get; set; }
-        public int TotalQuantity { get; set; }
-        public int Reserved { get; set; }
-        public int Sold { get; set; }
-        public int Available => TotalQuantity - Reserved - Sold;
+        public int InitialQuantity { get; set; } // Historical record of original quantity
+        public int TotalQuantity { get; set; } // Current total stock
+        public int ReservedQuantity { get; set; } // Reserved but not shipped
+        public int AvailableQuantity => TotalQuantity - ReservedQuantity; // Computed property
         public string Location { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime ExpirationDate { get; set; }
         public decimal? Cost { get; set; }
     }
+
 
 }

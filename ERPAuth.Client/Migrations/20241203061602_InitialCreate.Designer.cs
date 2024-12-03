@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERPAuth.Client.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241124141421_InitialCreate")]
+    [Migration("20241203061602_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -187,6 +187,9 @@ namespace ERPAuth.Client.Migrations
                     b.Property<DateTime>("ExpirationDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("InitialQuantity")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("text");
@@ -201,10 +204,7 @@ namespace ERPAuth.Client.Migrations
                     b.Property<int>("ProviderId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Reserved")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Sold")
+                    b.Property<int>("ReservedQuantity")
                         .HasColumnType("integer");
 
                     b.Property<int>("TotalQuantity")
@@ -313,7 +313,7 @@ namespace ERPAuth.Client.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("ClientOrderDate")
+                    b.Property<DateTime?>("ClientOrderDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ClientOrderNumber")
@@ -323,7 +323,9 @@ namespace ERPAuth.Client.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("OrderDate")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("OrderMethod")
                         .HasColumnType("text");
@@ -394,7 +396,6 @@ namespace ERPAuth.Client.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ClientOrderNumber")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
@@ -404,11 +405,9 @@ namespace ERPAuth.Client.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("OrderMethod")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("OrderPlacedBy")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")

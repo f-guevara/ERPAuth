@@ -1,7 +1,8 @@
 ﻿// ERPSystem.UI/Services/InventoryService.cs
-using ERPAuth.Client.Models; // Adjust based on the actual namespace for your models
+using ERPAuth.Client.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ERPAuth.Client.Data;
 
@@ -24,7 +25,7 @@ public class InventoryService
     {
         // Fetch all inventory where available quantity is greater than zero
         return await _context.Inventories
-            .Where(i => (i.TotalQuantity - i.Reserved - i.Sold) > 0)
+            .Where(i => i.TotalQuantity - i.ReservedQuantity > 0) // Updated to remove `Sold`
             .ToListAsync();
     }
 
@@ -37,9 +38,8 @@ public class InventoryService
             newInventory.CreatedAt = newInventory.CreatedAt.ToUniversalTime();
             newInventory.ExpirationDate = newInventory.ExpirationDate.ToUniversalTime();
 
-            // Initialize other fields
-            newInventory.Reserved = 0;
-            newInventory.Sold = 0;
+            // Initialize reserved quantity
+            newInventory.ReservedQuantity = 0;
 
             await _context.Inventories.AddAsync(newInventory);
             await _context.SaveChangesAsync();
@@ -51,20 +51,19 @@ public class InventoryService
         }
     }
 
-    public IEnumerable<Inventory> GetAvailableInventoryForArticle(int articleId)
+    public async Task<IEnumerable<Inventory>> GetAvailableInventoryForArticle(int articleId)
     {
         return _context.Inventories
             .Where(i => i.ArticleId == articleId) // Fetch relevant inventory
             .AsEnumerable() // Switch to client-side evaluation
-            .Where(i => i.TotalQuantity - i.Reserved - i.Sold > 0) // Perform calculation in memory
+            .Where(i => i.TotalQuantity - i.ReservedQuantity > 0) // Updated to remove `Sold`
             .Select(i => new Inventory
             {
                 Id = i.Id,
                 ArticleId = i.ArticleId,
                 LotNumber = i.LotNumber,
                 TotalQuantity = i.TotalQuantity,
-                Reserved = i.Reserved,
-                Sold = i.Sold,
+                ReservedQuantity = i.ReservedQuantity,
                 Location = i.Location,
                 Cost = i.Cost,
                 ExpirationDate = i.ExpirationDate,
@@ -72,7 +71,24 @@ public class InventoryService
             });
     }
 
+    public async Task ReserveInventoryAsync(int inventoryId, int quantity)
+    {
+        var inventory = await _context.Inventories.FindAsync(inventoryId);
 
+        if (inventory == null)
+        {
+            throw new Exception("Inventory not found.");
+        }
 
+        int availableQuantity = inventory.TotalQuantity - inventory.ReservedQuantity;
+
+        if (availableQuantity < quantity)
+        {
+            throw new Exception("Insufficient available inventory.");
+        }
+
+        inventory.ReservedQuantity += quantity;
+        await _context.SaveChangesAsync();
+    }
 
 }

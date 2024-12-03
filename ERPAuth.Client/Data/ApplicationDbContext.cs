@@ -36,67 +36,82 @@ namespace ERPAuth.Client.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Define one-to-many relationship between Article and Inventory
+            // Relationship configurations
+
+            // Article -> Inventory (One-to-Many)
             modelBuilder.Entity<Article>()
                 .HasMany(a => a.Inventories)
                 .WithOne(i => i.Article)
                 .HasForeignKey(i => i.ArticleId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Define one-to-many relationship between Customer and Order
+            // Customer -> Order (One-to-Many)
             modelBuilder.Entity<Customer>()
                 .HasMany(c => c.Orders)
                 .WithOne(o => o.Customer)
                 .HasForeignKey(o => o.CustomerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Define one-to-many relationship between Order and OrderItem
+            // Order -> OrderItem (One-to-Many)
             modelBuilder.Entity<Order>()
                 .HasMany(o => o.Items)
                 .WithOne(oi => oi.Order)
                 .HasForeignKey(oi => oi.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Define one-to-one relationship between OrderItem and Inventory
+            // OrderItem -> Inventory (Many-to-One, optional)
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.Inventory)
-                .WithMany() // Inventory can be associated with multiple order items
+                .WithMany() // Inventory can be associated with multiple OrderItems
                 .HasForeignKey(oi => oi.InventoryId)
-                .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete to avoid deleting inventory when an order item is removed
 
-            // Define one-to-one relationship between Order and PackingList
+            // PackingList -> Order (One-to-Many)
             modelBuilder.Entity<PackingList>()
                 .HasOne(pl => pl.Order)
                 .WithMany(o => o.PackingLists)
                 .HasForeignKey(pl => pl.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Define one-to-many relationship between PackingList and PackingListItem
+            // PackingList -> PackingListItem (One-to-Many)
             modelBuilder.Entity<PackingList>()
                 .HasMany(pl => pl.Items)
                 .WithOne(pli => pli.PackingList)
                 .HasForeignKey(pli => pli.PackingListId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Define one-to-many relationship between Invoice and InvoiceItem
+            // Invoice -> InvoiceItem (One-to-Many)
             modelBuilder.Entity<Invoice>()
                 .HasMany(i => i.Items)
                 .WithOne(ii => ii.Invoice)
                 .HasForeignKey(ii => ii.InvoiceId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Define optional relationships for Invoice
+            // Invoice -> Order (Optional relationship)
             modelBuilder.Entity<Invoice>()
                 .HasOne(i => i.Order)
                 .WithMany()
                 .HasForeignKey(i => i.OrderId)
-                .OnDelete(DeleteBehavior.SetNull); // Allow standalone invoices
+                .OnDelete(DeleteBehavior.SetNull); // Allow invoices without a linked order
 
+            // Invoice -> PackingList (Optional relationship)
             modelBuilder.Entity<Invoice>()
                 .HasOne(i => i.PackingList)
                 .WithMany()
                 .HasForeignKey(i => i.PackingListId)
-                .OnDelete(DeleteBehavior.SetNull); // Allow standalone invoices
+                .OnDelete(DeleteBehavior.SetNull); // Allow invoices without a linked packing list
+
+            // Ensure DateTime consistency for OrderDate and ClientOrderDate
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.Property(o => o.OrderDate)
+                    .HasColumnType("timestamp with time zone") // Ensure PostgreSQL stores in UTC
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP"); // Set default value to current UTC time
+
+                entity.Property(o => o.ClientOrderDate)
+                    .HasColumnType("timestamp with time zone") // Ensure PostgreSQL stores in UTC
+                    .IsRequired(false); // Explicitly allow nulls
+            });
         }
     }
 }

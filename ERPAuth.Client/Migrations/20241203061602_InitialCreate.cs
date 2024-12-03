@@ -216,9 +216,9 @@ namespace ERPAuth.Client.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     CustomerId = table.Column<int>(type: "integer", nullable: false),
-                    OrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    OrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     ClientOrderNumber = table.Column<string>(type: "text", nullable: true),
-                    ClientOrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ClientOrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     OrderPlacedBy = table.Column<string>(type: "text", nullable: true),
                     OrderMethod = table.Column<string>(type: "text", nullable: true)
                 },
@@ -243,9 +243,9 @@ namespace ERPAuth.Client.Migrations
                     ProviderId = table.Column<int>(type: "integer", nullable: false),
                     ProviderCode = table.Column<string>(type: "text", nullable: true),
                     LotNumber = table.Column<string>(type: "text", nullable: false),
+                    InitialQuantity = table.Column<int>(type: "integer", nullable: false),
                     TotalQuantity = table.Column<int>(type: "integer", nullable: false),
-                    Reserved = table.Column<int>(type: "integer", nullable: false),
-                    Sold = table.Column<int>(type: "integer", nullable: false),
+                    ReservedQuantity = table.Column<int>(type: "integer", nullable: false),
                     Location = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ExpirationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -277,10 +277,10 @@ namespace ERPAuth.Client.Migrations
                     OrderId = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ClientOrderNumber = table.Column<string>(type: "text", nullable: false),
+                    ClientOrderNumber = table.Column<string>(type: "text", nullable: true),
                     ClientOrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    OrderPlacedBy = table.Column<string>(type: "text", nullable: false),
-                    OrderMethod = table.Column<string>(type: "text", nullable: false)
+                    OrderPlacedBy = table.Column<string>(type: "text", nullable: true),
+                    OrderMethod = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {

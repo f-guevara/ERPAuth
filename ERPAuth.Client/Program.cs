@@ -1,6 +1,7 @@
 using ERPAuth.Client.Components;
 using ERPAuth.Client.Components.Account;
 using ERPAuth.Client.Data;
+using ERPAuth.Client.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +43,7 @@ builder.Services.AddScoped<ProviderService>();
 builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<PdfService>();
-
+builder.Services.AddScoped<PackingListService>();
 
 
 

@@ -33,6 +33,9 @@ else
                 <td>
                     <button class="btn btn-primary" @onclick="() => OpenOrder(order.Id)">Edit</button>
                     <button class="btn btn-danger" @onclick="() => ConfirmDelete(order.Id)">Delete</button>
+                        <button class="btn btn-primary" @onclick="() => NavigateToPackingList(order.Id)">
+                            Create Packing List
+                        </button>
                 </td>
             </tr>
         }
@@ -120,6 +123,10 @@ else
     {
         showDeleteConfirmation = false;
         await JSRuntime.InvokeVoidAsync("closeModal", "deleteModal");
+    }
+    private void NavigateToPackingList(int orderId)
+    {
+        NavigationManager.NavigateTo($"/packing-list/{orderId}");
     }
 
 }

@@ -42,9 +42,9 @@ else
                             <!-- Lot Assignment Modal -->
                             <select @bind="selectedItemForLot.InventoryId" class="form-control">
                                 <option value="">Select Lot</option>
-                                @foreach (var lot in availableLots.Where(l => l.ArticleId == item.ArticleId && l.Available >= item.Quantity))
+                                @foreach (var lot in availableLots.Where(l => l.ArticleId == item.ArticleId && l.AvailableQuantity >= item.Quantity))
                                 {
-                                    <option value="@lot.Id">@lot.LotNumber (Qty: @lot.Available)</option>
+                                    <option value="@lot.Id">@lot.LotNumber (Qty: @lot.AvailableQuantity)</option>
                                 }
                             </select>
                             <button class="btn btn-primary" @onclick="SaveAssignedLot">Save Lot</button>
@@ -145,14 +145,14 @@ else
             {
                 // Validate selected lot
                 var selectedLot = availableLots.FirstOrDefault(l => l.Id == selectedItemForLot.InventoryId);
-                if (selectedLot == null || selectedLot.Available < selectedItemForLot.Quantity)
+                if (selectedLot == null || selectedLot.AvailableQuantity < selectedItemForLot.Quantity)
                 {
                     errorMessage = "Selected lot is invalid or insufficient quantity.";
                     return;
                 }
 
                 // Update the reserved quantity
-                selectedLot.Reserved += selectedItemForLot.Quantity;
+                selectedLot.ReservedQuantity += selectedItemForLot.Quantity;
 
                 // Save the changes to the order item
                 await SaveItemChanges(selectedItemForLot);

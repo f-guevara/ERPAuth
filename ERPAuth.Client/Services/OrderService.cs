@@ -24,10 +24,12 @@ public class OrderService
     public async Task<Order?> GetOrderByIdAsync(int orderId)
     {
         return await _context.Orders
-            .Include(o => o.Customer)
+            .Include(o => o.Customer) // Keep Customer if used in the UI
             .Include(o => o.Items)
+                .ThenInclude(oi => oi.Article) // Include Article to prevent null reference
             .FirstOrDefaultAsync(o => o.Id == orderId);
     }
+
 
     // Method to add a new order
     public async Task<Order> AddOrderAsync(Order order)

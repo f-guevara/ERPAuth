@@ -18,7 +18,7 @@ namespace ERPAuth.Client.Models
 
         // Client-specific details
         public string? ClientOrderNumber { get; set; } // Client's reference number
-        public DateTime ClientOrderDate { get; set; } // Date client placed their order
+        public DateTime? ClientOrderDate { get; set; } // Date client placed their order
         public string? OrderPlacedBy { get; set; } // Client representative
         public string? OrderMethod { get; set; } // Email, phone, etc.
         // Navigation property for PackingLists

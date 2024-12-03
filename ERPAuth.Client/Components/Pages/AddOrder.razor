@@ -2,6 +2,8 @@
 @inject OrderService OrderService
 @inject CustomerService CustomerService
 @inject ArticleService ArticleService
+@inject InventoryService InventoryService
+
 @using ERPAuth.Client.Models
 
 <h3>Add Order</h3>
@@ -11,7 +13,7 @@
     <ValidationSummary />
 
     <!-- Customer Dropdown -->
-    <div>
+    <div class="form-group">
         <label for="customerId">Customer</label>
         <select id="customerId" @bind="newOrder.CustomerId" class="form-control">
             <option value="">Select a customer</option>
@@ -20,6 +22,30 @@
                 <option value="@customer.Id">@customer.FirstName @customer.LastName</option>
             }
         </select>
+    </div>
+
+    <!-- Client Order Number -->
+    <div class="form-group">
+        <label for="clientOrderNumber">Client Order Number</label>
+        <InputText id="clientOrderNumber" @bind-Value="newOrder.ClientOrderNumber" class="form-control" />
+    </div>
+
+    <!-- Client Order Date -->
+    <div class="form-group">
+        <label for="clientOrderDate">Client Order Date</label>
+        <InputDate id="clientOrderDate" @bind-Value="newOrder.ClientOrderDate" class="form-control" />
+    </div>
+
+    <!-- Order Placed By -->
+    <div class="form-group">
+        <label for="orderPlacedBy">Order Placed By</label>
+        <InputText id="orderPlacedBy" @bind-Value="newOrder.OrderPlacedBy" class="form-control" />
+    </div>
+
+    <!-- Order Method -->
+    <div class="form-group">
+        <label for="orderMethod">Order Method</label>
+        <InputText id="orderMethod" @bind-Value="newOrder.OrderMethod" class="form-control" placeholder="e.g., Email, Phone" />
     </div>
 
     <!-- Order Items -->
@@ -37,7 +63,6 @@
                     }
                 </select>
             </div>
-
 
             <!-- Quantity -->
             <div class="col-md-2">
@@ -111,16 +136,56 @@
     {
         try
         {
-            // Set default delivery date for each item
+            // Ensure all DateTime fields are in UTC
+            if (newOrder.ClientOrderDate.HasValue)
+            {
+                newOrder.ClientOrderDate = DateTime.SpecifyKind(newOrder.ClientOrderDate.Value, DateTimeKind.Utc);
+            }
+
+            newOrder.OrderDate = DateTime.SpecifyKind(newOrder.OrderDate, DateTimeKind.Utc);
+
             foreach (var item in newOrder.Items)
             {
                 if (item.DeliveryDate == default)
                 {
-                    item.DeliveryDate = DateTime.UtcNow.AddDays(7);
+                    item.DeliveryDate = DateTime.UtcNow.AddDays(7); // Default to 7 days later
+                }
+                else
+                {
+                    item.DeliveryDate = DateTime.SpecifyKind(item.DeliveryDate, DateTimeKind.Utc);
+                }
+
+                // Reserve inventory for this item
+                var availableInventory = await InventoryService.GetAvailableInventoryForArticle(item.ArticleId);
+                var remainingQuantity = item.Quantity;
+
+                foreach (var inventory in availableInventory)
+                {
+                    int availableQuantity = inventory.TotalQuantity - inventory.ReservedQuantity;
+
+                    if (availableQuantity > 0)
+                    {
+                        int reserveQuantity = Math.Min(availableQuantity, remainingQuantity);
+
+                        // Update reserved quantity in inventory
+                        inventory.ReservedQuantity += reserveQuantity;
+                        remainingQuantity -= reserveQuantity;
+
+                        if (remainingQuantity == 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (remainingQuantity > 0)
+                {
+                    throw new Exception($"Insufficient stock for Article ID {item.ArticleId}.");
                 }
             }
 
             await OrderService.AddOrderAsync(newOrder);
+
             newOrder = new Order(); // Reset the form
             errorMessage = null; // Clear error message
         }
@@ -131,18 +196,35 @@
     }
 
 
+
     private async Task OnArticleChange(OrderItem item, ChangeEventArgs e)
     {
-        // Update the CompanyCode
         item.CompanyCode = e.Value?.ToString();
 
-        // Fetch and set the ArticleId based on the selected CompanyCode
         if (!string.IsNullOrEmpty(item.CompanyCode))
         {
+            // Fetch article based on the selected CompanyCode
             var article = await ArticleService.GetArticleByCodeAsync(item.CompanyCode);
+
             if (article != null)
             {
                 item.ArticleId = article.Id;
+
+                // Fetch available inventory for the selected article
+                var availableInventory = await InventoryService.GetAvailableInventoryForArticle(article.Id);
+
+                // Calculate total available quantity across all lots
+                int totalAvailable = availableInventory.Sum(i => i.TotalQuantity - i.ReservedQuantity);
+
+                // Validate if enough inventory is available
+                if (item.Quantity > totalAvailable)
+                {
+                    errorMessage = $"Insufficient stock for {article.Name}. Available: {totalAvailable}.";
+                }
+                else
+                {
+                    errorMessage = null; // Clear error message if stock is sufficient
+                }
             }
         }
     }

@@ -18,10 +18,10 @@ namespace ERPAuth.Client.Models
         public ICollection<PackingListItem> Items { get; set; } = new List<PackingListItem>();
 
         // Client-specific details carried from the Order
-        public string ClientOrderNumber { get; set; }
+        public string? ClientOrderNumber { get; set; }
         public DateTime? ClientOrderDate { get; set; }
-        public string OrderPlacedBy { get; set; }
-        public string OrderMethod { get; set; }
+        public string? OrderPlacedBy { get; set; }
+        public string? OrderMethod { get; set; }
     }
 
 }

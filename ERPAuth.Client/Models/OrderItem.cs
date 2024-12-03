@@ -9,20 +9,19 @@ namespace ERPAuth.Client.Models
 {
     public class OrderItem
     {
-        public int Id { get; set; } // Primary key
-        public int OrderId { get; set; } // Foreign key to Order
+        public int Id { get; set; }
+        public int OrderId { get; set; }
         public Order Order { get; set; } // Navigation property
         public string CompanyCode { get; set; } // Links to inventory by company code
-        public int Quantity { get; set; } // Quantity required
+        public int Quantity { get; set; } // Total quantity ordered
         public decimal Price { get; set; } // Price per unit
-        public DateTime DeliveryDate { get; set; } = DateTime.UtcNow.AddDays(7); // Nullable delivery date
+        public DateTime DeliveryDate { get; set; } = DateTime.UtcNow.AddDays(7);
         public int ArticleId { get; set; } // Links to the article
         public Article Article { get; set; } // Navigation property
         public int? InventoryId { get; set; } // Nullable, links to a specific inventory lot
         public Inventory Inventory { get; set; } // Navigation property
-
-        // Fields for packing and shipping
-        public int QuantityShipped { get; set; } = 0; // Total quantity shipped
-        public int QuantityRemaining => Quantity - QuantityShipped; // Computed field
+        public int QuantityShipped { get; set; } = 0; // Quantity shipped
+        public int QuantityRemaining => Quantity - QuantityShipped; // Computed property
     }
+
 }
