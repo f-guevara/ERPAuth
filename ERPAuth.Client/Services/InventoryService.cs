@@ -34,9 +34,15 @@ public class InventoryService
     {
         try
         {
-            // Ensure DateTime fields are UTC
+            // Ensure DateTime fields are in UTC
             newInventory.CreatedAt = newInventory.CreatedAt.ToUniversalTime();
             newInventory.ExpirationDate = newInventory.ExpirationDate.ToUniversalTime();
+
+            // Initialize InitialQuantity to match TotalQuantity if not explicitly set
+            if (newInventory.InitialQuantity == 0)
+            {
+                newInventory.InitialQuantity = newInventory.TotalQuantity;
+            }
 
             // Initialize reserved quantity
             newInventory.ReservedQuantity = 0;
@@ -50,6 +56,7 @@ public class InventoryService
             throw;
         }
     }
+
 
     public async Task<IEnumerable<Inventory>> GetAvailableInventoryForArticle(int articleId)
     {

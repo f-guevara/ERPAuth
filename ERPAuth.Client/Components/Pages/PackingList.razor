@@ -30,20 +30,19 @@ else
                     <td>@item.ArticleName</td>
                     <td>@item.Quantity</td>
                     <td>@item.QuantityShipped</td>
-                    <td>@item.QuantityRemaining</td>
+                    <td>@(item.Quantity - item.QuantityShipped)</td> <!-- Calculate Remaining -->
                     <td>
                         <InputNumber @bind-Value="item.QuantityToShip"
                                      class="form-control"
                                      Min="0"
-                                     Max="@item.QuantityRemaining" />
+                                     Max="@(item.Quantity - item.QuantityShipped)" /> <!-- Set Max -->
                     </td>
                 </tr>
             }
         </tbody>
-
     </table>
 
-    <button @onclick="CreatePackingList">Create Packing List</button>
+    <button class="btn btn-primary" @onclick="CreatePackingList">Create Packing List</button>
 }
 
 @if (!string.IsNullOrEmpty(successMessage))
@@ -67,33 +66,39 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
         try
         {
-            Console.WriteLine($"Fetching order with ID: {orderId}");
+            // Fetch order and update packing list items
             order = await OrderService.GetOrderByIdAsync(orderId);
 
             if (order != null)
             {
-                Console.WriteLine($"Order found: {order.Id}");
-                packingListItems = order.Items.Select(item => new PackingListItemViewModel
-                    {
-                        OrderItemId = item.Id,
-                        ArticleName = item.Article?.Name ?? "Unknown",
-                        Quantity = item.Quantity,
-                        QuantityShipped = item.QuantityShipped
-                    }).ToList();
-
-                Console.WriteLine($"Packing list items loaded: {packingListItems.Count}");
+                packingListItems = order.Items
+                    .Where(item => item.InventoryId != null) // Only items with assigned lots
+                    .Select(item => new PackingListItemViewModel
+                        {
+                            OrderItemId = item.Id,
+                            ArticleName = item.Article?.Name ?? "Unknown",
+                            Quantity = item.Quantity,
+                            QuantityShipped = item.QuantityShipped,
+                            QuantityToShip = 0, // Reset QuantityToShip for new operation
+                            LotNumber = item.Inventory?.LotNumber,
+                            InventoryId = item.InventoryId
+                        })
+                    .ToList();
             }
             else
             {
-                Console.WriteLine($"No order found for ID: {orderId}");
                 errorMessage = "Order not found.";
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading order: {ex.Message}");
             errorMessage = $"Failed to load order: {ex.Message}";
         }
     }
@@ -104,7 +109,7 @@ else
         {
             // Map ViewModel to PackingListItem
             var packingListItemsToSave = packingListItems
-                .Where(item => item.QuantityToShip > 0)
+                .Where(item => item.QuantityToShip > 0) // Only include items to ship
                 .Select(item => new PackingListItem
                     {
                         OrderItemId = item.OrderItemId,
@@ -112,8 +117,20 @@ else
                     })
                 .ToList();
 
+            if (!packingListItemsToSave.Any())
+            {
+                errorMessage = "No items to include in the packing list.";
+                return;
+            }
+
+            // Call the service to create the packing list
             await PackingListService.CreatePackingListAsync(orderId, packingListItemsToSave);
+
             successMessage = "Packing list created successfully!";
+            errorMessage = null;
+
+            // Refresh data after the operation
+            await LoadData();
         }
         catch (Exception ex)
         {
@@ -122,4 +139,3 @@ else
     }
 
 }
-

@@ -25,6 +25,15 @@ namespace ERPAuth.Client.Services
             if (order == null)
                 throw new Exception("Order not found.");
 
+            // Filter out items without assigned lots
+            var validPackingItems = packingListItems
+                .Where(p => p.OrderItemId != 0 && order.Items.Any(oi => oi.Id == p.OrderItemId && oi.InventoryId != null))
+                .ToList();
+
+            if (!validPackingItems.Any())
+                throw new Exception("No items with assigned lots to include in the packing list.");
+
+            // Create the packing list
             var packingList = new PackingList
             {
                 OrderId = order.Id,
@@ -33,14 +42,18 @@ namespace ERPAuth.Client.Services
                 OrderPlacedBy = order.OrderPlacedBy,
                 OrderMethod = order.OrderMethod,
                 CreatedAt = DateTime.UtcNow,
-                Items = packingListItems
+                Items = validPackingItems
             };
 
-            foreach (var packingItem in packingListItems)
+            foreach (var packingItem in validPackingItems)
             {
                 var orderItem = order.Items.FirstOrDefault(oi => oi.Id == packingItem.OrderItemId);
                 if (orderItem == null)
                     throw new Exception($"OrderItem with ID {packingItem.OrderItemId} not found.");
+
+                var inventory = orderItem.Inventory;
+                if (inventory == null)
+                    throw new Exception($"Inventory not found for OrderItem ID {packingItem.OrderItemId}.");
 
                 var remainingQuantity = orderItem.Quantity - orderItem.QuantityShipped;
                 if (packingItem.QuantityShipped > remainingQuantity)
@@ -51,33 +64,30 @@ namespace ERPAuth.Client.Services
                 // Update OrderItem.QuantityShipped
                 orderItem.QuantityShipped += packingItem.QuantityShipped;
 
-                // Update Inventory quantities
-                if (orderItem.Inventory != null)
+                // Update Inventory.TotalQuantity and Reserved
+                if (inventory != null)
                 {
-                    var inventory = orderItem.Inventory;
-
-                    // Ensure enough stock is available
-                    var availableQuantity = inventory.TotalQuantity - inventory.ReservedQuantity;
-                    if (packingItem.QuantityShipped > availableQuantity)
-                    {
-                        throw new Exception($"Insufficient inventory for lot {inventory.LotNumber}. Available: {availableQuantity}.");
-                    }
-
-                    // Reduce TotalQuantity and ReservedQuantity
                     inventory.TotalQuantity -= packingItem.QuantityShipped;
                     inventory.ReservedQuantity -= packingItem.QuantityShipped;
 
-                    // Mark Inventory as Modified
+                    if (inventory.TotalQuantity < 0 || inventory.ReservedQuantity < 0)
+                    {
+                        throw new Exception($"Inventory for Lot {inventory.LotNumber} is invalid: TotalQuantity={inventory.TotalQuantity}, Reserved={inventory.ReservedQuantity}.");
+                    }
+
                     _context.Entry(inventory).State = EntityState.Modified;
                 }
             }
 
-            // Save Packing List and update OrderItems and Inventories
             _context.PackingLists.Add(packingList);
             await _context.SaveChangesAsync();
 
             return packingList;
         }
+
+
+
+
 
 
 

@@ -11,6 +11,19 @@ public class OrderService
         _context = context;
     }
 
+    public async Task<Order> CreateOrderAsync(Order newOrder)
+    {
+        // No inventory validation here; just save the order
+        if (newOrder == null)
+            throw new ArgumentNullException(nameof(newOrder));
+
+        // Add the order and its items
+        _context.Orders.Add(newOrder);
+        await _context.SaveChangesAsync();
+
+        return newOrder;
+    }
+
     // Method to retrieve all orders, including their items and customer details
     public async Task<List<Order>> GetAllOrdersAsync()
     {

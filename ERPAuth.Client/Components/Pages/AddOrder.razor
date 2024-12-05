@@ -11,6 +11,9 @@
 <EditForm Model="newOrder" OnValidSubmit="HandleAddOrder">
     <DataAnnotationsValidator />
     <ValidationSummary />
+    <p class="text-info">
+        Items not currently in stock will remain on backorder and will be fulfilled as inventory becomes available.
+    </p>
 
     <!-- Customer Dropdown -->
     <div class="form-group">
@@ -136,7 +139,7 @@
     {
         try
         {
-            // Ensure all DateTime fields are in UTC
+            // Set default dates to UTC if not provided
             if (newOrder.ClientOrderDate.HasValue)
             {
                 newOrder.ClientOrderDate = DateTime.SpecifyKind(newOrder.ClientOrderDate.Value, DateTimeKind.Utc);
@@ -155,36 +158,12 @@
                     item.DeliveryDate = DateTime.SpecifyKind(item.DeliveryDate, DateTimeKind.Utc);
                 }
 
-                // Reserve inventory for this item
-                var availableInventory = await InventoryService.GetAvailableInventoryForArticle(item.ArticleId);
-                var remainingQuantity = item.Quantity;
-
-                foreach (var inventory in availableInventory)
-                {
-                    int availableQuantity = inventory.TotalQuantity - inventory.ReservedQuantity;
-
-                    if (availableQuantity > 0)
-                    {
-                        int reserveQuantity = Math.Min(availableQuantity, remainingQuantity);
-
-                        // Update reserved quantity in inventory
-                        inventory.ReservedQuantity += reserveQuantity;
-                        remainingQuantity -= reserveQuantity;
-
-                        if (remainingQuantity == 0)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                if (remainingQuantity > 0)
-                {
-                    throw new Exception($"Insufficient stock for Article ID {item.ArticleId}.");
-                }
+                // Ensure inventory reference is nullable to allow items not in stock
+                item.InventoryId = null;
             }
 
-            await OrderService.AddOrderAsync(newOrder);
+            // Save the order without validating inventory
+            await OrderService.CreateOrderAsync(newOrder);
 
             newOrder = new Order(); // Reset the form
             errorMessage = null; // Clear error message
@@ -194,6 +173,7 @@
             errorMessage = $"Failed to add order: {ex.Message}";
         }
     }
+
 
 
 
