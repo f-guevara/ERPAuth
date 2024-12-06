@@ -85,6 +85,50 @@ namespace ERPAuth.Client.Services
             return packingList;
         }
 
+        public async Task DeletePackingListAsync(int packingListId)
+        {
+            // Fetch the packing list along with its items and related inventory
+            var packingList = await _context.PackingLists
+                .Include(pl => pl.Items)
+                .ThenInclude(pli => pli.OrderItem)
+                .ThenInclude(oi => oi.Inventory)
+                .FirstOrDefaultAsync(pl => pl.Id == packingListId);
+
+            if (packingList == null)
+            {
+                throw new Exception("Packing list not found.");
+            }
+
+            // Adjust inventory for each packing list item
+            foreach (var item in packingList.Items)
+            {
+                if (item.OrderItem?.Inventory != null)
+                {
+                    // Return shipped quantities to inventory
+                    item.OrderItem.Inventory.TotalQuantity += item.QuantityShipped;
+                    item.OrderItem.Inventory.ReservedQuantity -= item.QuantityShipped;
+
+                    if (item.OrderItem.Inventory.ReservedQuantity < 0)
+                    {
+                        throw new Exception($"ReservedQuantity for inventory ID {item.OrderItem.Inventory.Id} went below zero. Data may be corrupted.");
+                    }
+
+                    // Mark the inventory as modified
+                    _context.Entry(item.OrderItem.Inventory).State = EntityState.Modified;
+
+                    // Adjust the OrderItem quantities
+                    item.OrderItem.QuantityShipped -= item.QuantityShipped;
+                    _context.Entry(item.OrderItem).State = EntityState.Modified;
+                }
+            }
+
+            // Remove the packing list and its items
+            _context.PackingListItems.RemoveRange(packingList.Items);
+            _context.PackingLists.Remove(packingList);
+
+            // Save changes
+            await _context.SaveChangesAsync();
+        }
 
 
 

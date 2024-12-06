@@ -30,12 +30,12 @@ else
                     <td>@item.ArticleName</td>
                     <td>@item.Quantity</td>
                     <td>@item.QuantityShipped</td>
-                    <td>@(item.Quantity - item.QuantityShipped)</td> <!-- Calculate Remaining -->
+                    <td>@(item.Quantity - item.QuantityShipped)</td>
                     <td>
                         <InputNumber @bind-Value="item.QuantityToShip"
                                      class="form-control"
                                      Min="0"
-                                     Max="@(item.Quantity - item.QuantityShipped)" /> <!-- Set Max -->
+                                     Max="@GetMaxQuantity(item)" />
                     </td>
                 </tr>
             }
@@ -58,6 +58,7 @@ else
 @code {
     private string? successMessage;
     private string? errorMessage;
+
     [Parameter]
     public int orderId { get; set; }
 
@@ -73,20 +74,20 @@ else
     {
         try
         {
-            // Fetch order and update packing list items
+            // Fetch order and items with assigned lots
             order = await OrderService.GetOrderByIdAsync(orderId);
 
             if (order != null)
             {
                 packingListItems = order.Items
-                    .Where(item => item.InventoryId != null) // Only items with assigned lots
+                    .Where(item => item.InventoryId != null) // Only include items with lots assigned
                     .Select(item => new PackingListItemViewModel
                         {
                             OrderItemId = item.Id,
                             ArticleName = item.Article?.Name ?? "Unknown",
                             Quantity = item.Quantity,
                             QuantityShipped = item.QuantityShipped,
-                            QuantityToShip = 0, // Reset QuantityToShip for new operation
+                            QuantityToShip = 0, // Initialize QuantityToShip for new packing list
                             LotNumber = item.Inventory?.LotNumber,
                             InventoryId = item.InventoryId
                         })
@@ -107,9 +108,9 @@ else
     {
         try
         {
-            // Map ViewModel to PackingListItem
+            // Filter and map items to save in the packing list
             var packingListItemsToSave = packingListItems
-                .Where(item => item.QuantityToShip > 0) // Only include items to ship
+                .Where(item => item.QuantityToShip > 0) // Only include items with a quantity to ship
                 .Select(item => new PackingListItem
                     {
                         OrderItemId = item.OrderItemId,
@@ -119,17 +120,17 @@ else
 
             if (!packingListItemsToSave.Any())
             {
-                errorMessage = "No items to include in the packing list.";
+                errorMessage = "No items with quantities to ship.";
                 return;
             }
 
             // Call the service to create the packing list
             await PackingListService.CreatePackingListAsync(orderId, packingListItemsToSave);
 
-            successMessage = "Packing list created successfully!";
+            successMessage = "Packing list created successfully.";
             errorMessage = null;
 
-            // Refresh data after the operation
+            // Refresh data after creating the packing list
             await LoadData();
         }
         catch (Exception ex)
@@ -137,5 +138,8 @@ else
             errorMessage = $"Failed to create packing list: {ex.Message}";
         }
     }
-
+    private int GetMaxQuantity(PackingListItemViewModel item)
+    {
+        return item.Quantity - item.QuantityShipped;
+    }
 }
